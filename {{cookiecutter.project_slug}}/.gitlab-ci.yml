@@ -1,0 +1,41 @@
+image: docker:19.03.0
+
+variables:
+  DOCKER_HOST: tcp://localhost:2375
+  DOCKER_DRIVER: overlay2
+  # Create the certificates inside this directory for both the server
+  # and client. The certificates used by the client will be created in
+  # /certs/client so we only need to share this directory with the
+  # volume mount in `config.toml`.
+  DOCKER_TLS_CERTDIR: ""
+  POSTGRES_DB: "ci"
+  POSTGRES_USER: "postgres"
+  POSTGRES_PASSWORD: "postgres"
+
+services:
+  - docker:19.03.0-dind
+
+stages:
+  - test
+  - build
+  - deploy
+
+test-app:
+  stage: test
+  image: python:latest
+  services:
+  - postgres:latest
+  script:
+    - apt-get update -qy
+    - apt-get install -y python-dev python-pip
+    - pip install -r requirements.txt
+    - python manage.py test --settings=config.settings.ci
+
+build-image-dev:
+  stage: build
+  only:
+    - develop
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -t $CI_REGISTRY/idlab-geneva/fp/macaronsapi:latest .
+    - docker push $CI_REGISTRY/idlab-geneva/fp/macaronsapi:latest
