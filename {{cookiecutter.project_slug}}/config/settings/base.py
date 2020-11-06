@@ -45,7 +45,8 @@ DJANGO_APPS = [
     'django.contrib.humanize',
     'api',
     'core',
-    'tests'
+    'tests',
+    'config'
 ]
 THIRD_PARTY_APPS = [
     "rest_framework",
@@ -76,9 +77,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_prometheus.middleware.PrometheusAfterMiddleware',
-    'core.middlewares.ActivityLogMiddleware',
-    'core.middlewares.ReCaptchaMiddleware',
-    'core.middlewares.ActivityLogMiddleware'
 ]
 
 
@@ -87,7 +85,7 @@ ROOT_URLCONF = '{{cookiecutter.project_slug}}.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -100,7 +98,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = '{{cookiecutter.project_slug}}.wsgi.application'
+WSGI_APPLICATION = 'config.wsgi.application'
 
 
 # Password validation
@@ -199,4 +197,80 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'API Documentation',
     'DESCRIPTION': 'API pour le projet {{cookiecutter.project_slug}}',
     'VERSION': APP_VERSION,
+}
+
+REST_REGISTRATION = {
+    'REGISTER_VERIFICATION_ENABLED': False,
+    'REGISTER_EMAIL_VERIFICATION_ENABLED': True,
+    'RESET_PASSWORD_VERIFICATION_ENABLED': True,
+    'REGISTER_VERIFICATION_URL': 'https://frontend-host/verify-user/',
+    'RESET_PASSWORD_VERIFICATION_URL': 'https://frontend-host/reset-password/',
+    'REGISTER_EMAIL_VERIFICATION_URL': 'https://frontend-host/verify-email/',
+    'SEND_RESET_PASSWORD_LINK_SERIALIZER_USE_EMAIL': True,
+
+    'VERIFICATION_FROM_EMAIL': 'no-reply@example.com',
+
+    'REGISTER_EMAIL_VERIFICATION_PERIOD': datetime.timedelta(days=7),
+    'REGISTER_EMAIL_VERIFICATION_URL': 'http://locahost:4200/verify-email/',
+    'REGISTER_EMAIL_VERIFICATION_EMAIL_TEMPLATES': {
+        'html_body': 'rest_registration/register_email/body.txt',
+        'subject': 'rest_registration/register_email/subject.txt'
+    },
+
+    'RESET_PASSWORD_VERIFICATION_URL': 'http://localhost/reset-password/',
+    'RESET_PASSWORD_VERIFICATION_PERIOD': datetime.timedelta(days=1),
+    'RESET_PASSWORD_VERIFICATION_EMAIL_TEMPLATES': {
+        'html_body': 'reset_password_FR.html',
+        'subject': 'reset_password_subject_FR.txt'
+    },
+
+    'REGISTER_EMAIL_VERIFICATION_EMAIL_TEMPLATES_I18N': {
+        'FR': {
+            'subject': 'register_email_subject_FR.txt',
+            'html_body': 'register_email_FR.html',
+        },
+        'IT': {
+            'subject': 'register_email_subject_IT.txt',
+            'html_body': 'register_email_IT.html',
+        },
+        'DE': {
+            'subject': 'register_email_subject_DE.txt',
+            'html_body': 'register_email_DE.html',
+        },
+        'EN': {
+            'subject': 'register_email_subject_EN.txt',
+            'html_body': 'register_email_EN.html',
+        }
+
+    },
+
+    'RESET_PASSWORD_VERIFICATION_EMAIL_TEMPLATES_I18N': {
+        'FR': {
+            'subject': 'reset_password_subject_FR.txt',
+            'html_body': 'reset_password_FR.html',
+        },
+        'IT': {
+            'subject': 'reset_password_subject_IT.txt',
+            'html_body': 'reset_password_IT.html',
+        },
+        'DE': {
+            'subject': 'reset_password_subject_DE.txt',
+            'html_body': 'reset_password_DE.html',
+        },
+        'EN': {
+            'subject': 'reset_password_subject_EN.txt',
+            'html_body': 'reset_password_EN.html',
+        }
+    },
+
+    'PROFILE_SERIALIZER_CLASS': 'rest_registration.api.serializers.DefaultUserProfileSerializer',
+
+    'VERIFICATION_REPLY_TO_EMAIL': None,
+
+    'SUCCESS_RESPONSE_BUILDER': 'rest_registration.utils.responses.build_default_success_response',
+
+    'REGISTER_SERIALIZER_CLASS': 'api.v1.serializers.macarons.MacaronsRegisterUserSerializer',
+    'RECAPTCHA_ENABLED': True,
+    'RECAPTCHA_KEY': ''
+
 }
