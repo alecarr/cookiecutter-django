@@ -35,5 +35,5 @@
   "keep_local_envs_in_vcs": "y",
 
   "debug": "n",
-  "verification_url": "{{ verification_url }}"
+  "verification_url": "{verification_url}"
 }
