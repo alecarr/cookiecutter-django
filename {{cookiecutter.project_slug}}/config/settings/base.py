@@ -35,16 +35,6 @@ APP_VERSION = {{cookiecutter.project_slug}}.__version__
 
 
 # Application definition
-
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-]
-
 DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -55,8 +45,6 @@ DJANGO_APPS = [
     'django.contrib.humanize',
     'api',
     'core',
-    'macarons',
-    'purchases',
     'tests'
 ]
 THIRD_PARTY_APPS = [
@@ -66,7 +54,6 @@ THIRD_PARTY_APPS = [
     'django_q',
     'rest_registration',
     'django_prometheus',
-    'drf_yasg',
     'import_export',
     'drf_spectacular',
 ]
@@ -95,12 +82,12 @@ MIDDLEWARE = [
 ]
 
 
-ROOT_URLCONF = 'macaronsapi.urls'
+ROOT_URLCONF = '{{cookiecutter.project_slug}}.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates/macarons/', 'templates/purchases/'],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -113,7 +100,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'macaronsapi.wsgi.application'
+WSGI_APPLICATION = '{{cookiecutter.project_slug}}.wsgi.application'
 
 
 # Password validation
@@ -210,6 +197,6 @@ SPECTACULAR_SETTINGS = {
     'SERVE_PUBLIC': True,
     'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],
     'TITLE': 'API Documentation',
-    'DESCRIPTION': 'API pour le projet ' + {{cookiecutter.project_slug}},
+    'DESCRIPTION': 'API pour le projet {{cookiecutter.project_slug}}',
     'VERSION': APP_VERSION,
 }

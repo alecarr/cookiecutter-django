@@ -16,15 +16,24 @@ from .base import env
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
-SECRET_KEY = env("DJANGO_SECRET_KEY")
+SECRET_KEY = env(
+    "DJANGO_SECRET_KEY",
+    default="!!!SET DJANGO_SECRET_KEY!!!",
+)
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["{{ cookiecutter.domain_name }}"])
 
-# DATABASES
-# ------------------------------------------------------------------------------
-DATABASES["default"] = env.db("DATABASE_URL")  # noqa F405
-DATABASES["default"]["ATOMIC_REQUESTS"] = True  # noqa F405
-DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)  # noqa F405
+# DATABASE
+DATABASES = {
+    'default': {
+        'ENGINE': 'django_prometheus.db.backends.postgresql',
+        'NAME': env("DATABASE_NAME"),
+        'USER': env("DATABASE_USER"),
+        'PASSWORD': env("DATABASE_PWD"),
+        'HOST': env("DATABASE_HOST"),
+        'PORT': env("DATABASE_PORT"),
+    }
+}
 
 # CACHES
 # ------------------------------------------------------------------------------
@@ -66,29 +75,6 @@ SECURE_CONTENT_TYPE_NOSNIFF = env.bool(
     "DJANGO_SECURE_CONTENT_TYPE_NOSNIFF", default=True
 )
 
-# STORAGES
-# ------------------------------------------------------------------------------
-# https://django-storages.readthedocs.io/en/latest/#installation
-INSTALLED_APPS += ["storages"]  # noqa F405
-# https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html#settings
-AWS_ACCESS_KEY_ID = env("DJANGO_AWS_ACCESS_KEY_ID")
-# https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html#settings
-AWS_SECRET_ACCESS_KEY = env("DJANGO_AWS_SECRET_ACCESS_KEY")
-# https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html#settings
-AWS_STORAGE_BUCKET_NAME = env("DJANGO_AWS_STORAGE_BUCKET_NAME")
-# https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html#settings
-AWS_QUERYSTRING_AUTH = False
-# DO NOT change these unless you know what you're doing.
-_AWS_EXPIRY = 60 * 60 * 24 * 7
-# https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html#settings
-AWS_S3_OBJECT_PARAMETERS = {
-    "CacheControl": f"max-age={_AWS_EXPIRY}, s-maxage={_AWS_EXPIRY}, must-revalidate"
-}
-#  https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html#settings
-AWS_DEFAULT_ACL = None
-# https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html#settings
-AWS_S3_REGION_NAME = env("DJANGO_AWS_S3_REGION_NAME", default=None)
-
 # STATIC
 # ------------------------
 {% if cookiecutter.use_whitenoise == 'y' -%}
@@ -96,31 +82,6 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 {%- else %}
 STATICFILES_STORAGE = "config.settings.production.StaticRootS3Boto3Storage"
 STATIC_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/static/"
-{%- endif %}
-
-# MEDIA
-# ------------------------------------------------------------------------------
-{% if cookiecutter.use_whitenoise == 'y' -%}
-DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/"
-{%- else %}
-# region http://stackoverflow.com/questions/10390244/
-# Full-fledge class: https://stackoverflow.com/a/18046120/104731
-from storages.backends.s3boto3 import S3Boto3Storage  # noqa E402
-
-
-class StaticRootS3Boto3Storage(S3Boto3Storage):
-    location = "static"
-
-
-class MediaRootS3Boto3Storage(S3Boto3Storage):
-    location = "media"
-    file_overwrite = False
-
-
-# endregion
-DEFAULT_FILE_STORAGE = "config.settings.production.MediaRootS3Boto3Storage"
-MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/media/"
 {%- endif %}
 
 # TEMPLATES
@@ -279,15 +240,18 @@ sentry_logging = LoggingIntegration(
     level=SENTRY_LOG_LEVEL,  # Capture info and above as breadcrumbs
     event_level=None,  # Send no events from log messages
 )
-
-{%- if cookiecutter.use_celery == 'y' %}
+# sentry
 sentry_sdk.init(
     dsn=SENTRY_DSN,
-    integrations=[sentry_logging, DjangoIntegration(), CeleryIntegration()],
+    integrations=[sentry_logging, DjangoIntegration()],
+
+    # If you wish to associate users to errors (assuming you are using
+    # django.contrib.auth) you may enable sending PII data.
+    send_default_pii=True,
+    environment="production",
+    release="{{cookiecutter.project_slug}}@" + APP_VERSION
 )
-{% else %}
-sentry_sdk.init(dsn=SENTRY_DSN, integrations=[sentry_logging, DjangoIntegration()])
-{% endif -%}
+
 {% endif %}
 # Your stuff...
 # ------------------------------------------------------------------------------
